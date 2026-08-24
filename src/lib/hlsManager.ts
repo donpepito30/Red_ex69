@@ -6,6 +6,7 @@ class HlsSingleton {
   private static instance: HlsSingleton;
   private hls: Hls | null = null;
   private currentVideoElement: HTMLVideoElement | null = null;
+  private currentStreamUrl: string | null = null;
   
   private activeId: string | null = null;
   private listeners: Set<Listener> = new Set();
@@ -40,12 +41,14 @@ class HlsSingleton {
   }
 
   public play(videoElement: HTMLVideoElement, streamUrl: string, onError: () => void) {
-    if (this.currentVideoElement === videoElement && this.hls?.url === streamUrl) {
+    // Si ya estamos reproduciendo el mismo stream en el mismo elemento de video, no reiniciar
+    if (this.currentVideoElement === videoElement && this.currentStreamUrl === streamUrl) {
       return;
     }
 
     this.stop();
     this.currentVideoElement = videoElement;
+    this.currentStreamUrl = streamUrl;
 
     if (Hls.isSupported() && streamUrl.includes('.m3u8')) {
       if (!this.hls) {
@@ -53,8 +56,14 @@ class HlsSingleton {
           enableWorker: true,
           lowLatencyMode: true,
           capLevelToPlayerSize: true, 
-          maxBufferSize: 30 * 1024 * 1024, 
-          maxMaxBufferLength: 30,
+          maxBufferLength: 10,
+          maxMaxBufferLength: 20,
+          maxBufferSize: 15 * 1024 * 1024,
+          backBufferLength: 5,
+          liveSyncDurationCount: 2,
+          manifestLoadingTimeOut: 5000,
+          levelLoadingTimeOut: 5000,
+          fragLoadingTimeOut: 8000,
         });
       }
 
@@ -82,6 +91,7 @@ class HlsSingleton {
   }
 
   public stop() {
+    this.currentStreamUrl = null;
     if (this.hls) {
       this.hls.detachMedia();
       this.hls.off(Hls.Events.MANIFEST_PARSED);
@@ -97,3 +107,4 @@ class HlsSingleton {
 }
 
 export const hlsManager = HlsSingleton.getInstance();
+

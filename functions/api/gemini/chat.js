@@ -1,16 +1,28 @@
 export async function onRequestPost(context) {
   try {
-    const body = await context.request.json();
-    const { prompt, modelUsername } = body;
+    const body = await context.request.json().catch(() => ({}));
+    const { prompt, modelUsername } = body || {};
     
+    // SEGURIDAD: Validación de entrada
+    if (!prompt || typeof prompt !== 'string' || prompt.trim() === '') {
+      return new Response(JSON.stringify({ error: 'El mensaje no es válido.' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Sanitización y recorte anti Prompt Injection & DoS
+    const sanitizedPrompt = prompt.replace(/[\0\x08\x09\x1a]/g, '').slice(0, 500).trim();
+    const sanitizedUsername = String(modelUsername || '').replace(/[^\w\s\-]/gi, '').slice(0, 50).trim();
+
     // Leer del environment de Cloudflare
-    const apiKey = context.env?.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+    const apiKey = context.env?.GEMINI_API_KEY || process.env?.GEMINI_API_KEY;
 
     if (!apiKey) {
-      console.warn('⚠️ GEMINI_API_KEY not configured in Cloudflare Environment Variables');
+      console.warn('⚠️ GEMINI_API_KEY no configurada');
       return new Response(JSON.stringify({
-        text: `¡Hola amor! Gracias por tu mensaje. ¡Disfruta el show en vivo de ${modelUsername || 'la modelo'}! ❤️`,
-        warning: 'API key not configured - using demo response'
+        text: `¡Hola amor! Gracias por tu mensaje. ¡Disfruta el show en vivo de ${sanitizedUsername || 'la modelo'}! ❤️`,
+        warning: 'API key not configured'
       }), {
         headers: { 'Content-Type': 'application/json' }
       });
@@ -24,12 +36,12 @@ export async function onRequestPost(context) {
         body: JSON.stringify({
           contents: [{ 
             parts: [{ 
-              text: prompt 
+              text: sanitizedPrompt 
             }] 
           }],
           systemInstruction: {
             parts: [{ 
-              text: `Estás interpretando a la modelo de transmisión en vivo "${modelUsername || 'modelo'}". 
+              text: `Estás interpretando a la modelo de transmisión en vivo "${sanitizedUsername || 'modelo'}". 
 Tu personalidad es muy coqueta, cariñosa y amigable. 
 Responde de manera breve y entusiasta (máximo 2 frases) al mensaje del usuario en el chat live. 
 Idioma: Español.` 

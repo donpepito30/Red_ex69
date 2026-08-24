@@ -2,12 +2,13 @@ const CACHE_NAME = 'models-cache-v1';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function fetchWithBackoff(url: string, retries = 3, baseDelay = 1000): Promise<Response> {
+async function fetchWithBackoff(url: string, retries = 2, baseDelay = 800): Promise<Response> {
   let attempt = 0;
   while (attempt < retries) {
     try {
       const response = await fetch(url, {
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout(7000)
       });
       if (response.ok) return response;
       if (response.status === 429 || response.status >= 500) {
@@ -18,7 +19,7 @@ async function fetchWithBackoff(url: string, retries = 3, baseDelay = 1000): Pro
     } catch (err) {
       attempt++;
       if (attempt >= retries) throw err;
-      const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff: 1s, 2s...
+      const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff: 800ms, 1.6s
       console.warn(`[Network] Intento ${attempt} fallido. Reintentando en ${delay}ms...`);
       await sleep(delay);
     }

@@ -57,8 +57,8 @@ export const Navbar: React.FC<NavbarProps> = memo(({
           {/* Logo & Live Status */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="flex items-center gap-2.5 cursor-pointer group" onClick={() => setFilters((prev) => ({ ...prev, gender: 'all', search: '', tags: [] }))}>
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-600 via-pink-600 to-amber-500 flex items-center justify-center shadow-lg shadow-rose-950/60 group-hover:scale-105 transition">
-                <span className="font-black text-white text-base tracking-tighter">R69</span>
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-rose-600 via-pink-600 to-amber-500 flex items-center justify-center shadow-lg shadow-rose-950/60 group-hover:scale-105 transition overflow-hidden p-0.5">
+                <img src="https://i.ibb.co/Pv8MgvCJ/1000191175-removebg-preview.png" alt="Redex69 Logo" className="w-full h-full object-contain" />
               </div>
               <div className="flex flex-col">
                 <span className="font-black text-lg tracking-wider text-white flex items-center">

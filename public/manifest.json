@@ -1,0 +1,50 @@
+{
+  "short_name": "Redex69 Live",
+  "name": "Redex69 Live - Transmisión en Vivo",
+  "icons": [
+    {
+      "src": "https://i.ibb.co/Pv8MgvCJ/1000191175-removebg-preview.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://i.ibb.co/Pv8MgvCJ/1000191175-removebg-preview.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "https://i.ibb.co/Pv8MgvCJ/1000191175-removebg-preview.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://i.ibb.co/Pv8MgvCJ/1000191175-removebg-preview.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Redex69 Live",
+      "short_name": "Redex69",
+      "description": "Abrir transmisiones en vivo de Redex69",
+      "url": "/",
+      "icons": [
+        {
+          "src": "https://i.ibb.co/Pv8MgvCJ/1000191175-removebg-preview.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "display": "standalone",
+  "orientation": "portrait"
+}

@@ -5,6 +5,7 @@ import Hls from 'hls.js';
 import { Model, ChatMessage, TipOption } from '@/lib/types';
 import { INITIAL_CHAT_MESSAGES } from '@/lib/mockModelsData';
 import { CompactModelCard } from './CompactModelCard';
+import { sanitizeInput } from '@/lib/utils';
 import {
   X,
   Send,
@@ -188,23 +189,23 @@ export const ModelRoomModal: React.FC<ModelRoomModalProps> = ({
            retryTimeout = setTimeout(initPlayer, delay);
         };
       } else if (isHlsUrl && Hls.isSupported()) {
-        // Fortified High-Performance HLS Config for ultra-stable live streaming
+        // Fortified High-Performance HLS Config for ultra-stable, fast live streaming
         hls = new Hls({
           enableWorker: true,
-          lowLatencyMode: false,
+          lowLatencyMode: true,
           capLevelToPlayerSize: false,
-          maxBufferLength: 45,
-          maxMaxBufferLength: 90,
-          maxBufferSize: 90 * 1024 * 1024,
-          backBufferLength: 15,
-          liveSyncDurationCount: 3,
-          liveMaxLatencyDurationCount: 10,
+          maxBufferLength: 15,
+          maxMaxBufferLength: 30,
+          maxBufferSize: 30 * 1024 * 1024,
+          backBufferLength: 10,
+          liveSyncDurationCount: 2,
+          liveMaxLatencyDurationCount: 6,
           progressive: true,
           startLevel: -1,
-          manifestLoadingTimeOut: 10000,
+          manifestLoadingTimeOut: 6000,
           manifestLoadingMaxRetry: 5,
-          levelLoadingTimeOut: 10000,
-          fragLoadingTimeOut: 20000,
+          levelLoadingTimeOut: 6000,
+          fragLoadingTimeOut: 12000,
           fragLoadingMaxRetry: 6,
         });
 
@@ -282,19 +283,19 @@ export const ModelRoomModal: React.FC<ModelRoomModalProps> = ({
   // Handle user sending text message
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!inputText.trim()) return;
+    const cleanText = sanitizeInput(inputText, 500);
+    if (!cleanText) return;
 
     const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const userMsg: ChatMessage = {
       id: `user_msg_${messages.length + 1}`,
       sender: 'Tú (Usuario VIP)',
-      message: inputText,
+      message: cleanText,
       timestamp: timeStr,
       badge: 'VIP',
     };
 
     setMessages((prev) => [...prev, userMsg]);
-    const sentText = inputText;
     setInputText('');
 
     // Trigger AI response from Model using Gemini API
@@ -303,18 +304,19 @@ export const ModelRoomModal: React.FC<ModelRoomModalProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: sentText,
+          prompt: cleanText,
           modelUsername: model.username,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       
       setTimeout(() => {
+        const replyText = sanitizeInput(data.text || `¡Awww gracias mi vida por chatear conmigo! 🔥`, 500);
         const modelReply: ChatMessage = {
           id: `model_reply_${Date.now()}`,
           sender: model.displayName,
           avatar: model.avatarUrl,
-          message: data.text || `¡Awww gracias mi vida por chatear conmigo! 🔥`,
+          message: replyText,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           isModel: true,
         };
@@ -322,6 +324,7 @@ export const ModelRoomModal: React.FC<ModelRoomModalProps> = ({
       }, 1200);
     } catch {
       // Fallback response
+
       setTimeout(() => {
         const modelReply: ChatMessage = {
           id: `model_reply_${Date.now()}`,
@@ -486,26 +489,17 @@ export const ModelRoomModal: React.FC<ModelRoomModalProps> = ({
                   La transmisión experimenta intermitencias. Reconectando señal automáticamente...
                 </p>
 
-                <div className="mt-5 flex items-center gap-3">
+                <div className="mt-5 flex items-center justify-center gap-3">
                   <button
                     onClick={() => {
                       setVideoError(false);
                       setStreamSource('video'); // Forces re-render of HLS logic if we add dependency
                     }}
-                    className="py-2 px-4 bg-rose-600/90 hover:bg-rose-500 text-white font-bold text-xs rounded-xl backdrop-blur-md transition shadow-lg flex items-center gap-2"
+                    className="py-2.5 px-5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl backdrop-blur-md transition shadow-lg flex items-center gap-2 cursor-pointer"
                   >
                     <RefreshCw className="w-4 h-4" />
-                    Reintentar ahora
+                    Reintentar conexión
                   </button>
-                  <a
-                    href={model.chatUrl || `https://stripcash.com/live/${model.username}?aff=aff_velvet_101`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="py-2 px-4 bg-zinc-800/80 hover:bg-zinc-700/80 text-white font-bold text-xs rounded-xl backdrop-blur-md border border-zinc-700/50 transition flex items-center gap-2"
-                  >
-                    <ExternalLink className="w-4 h-4 text-rose-400" />
-                    Canal Oficial
-                  </a>
                 </div>
               </div>
             )}
@@ -678,17 +672,6 @@ export const ModelRoomModal: React.FC<ModelRoomModalProps> = ({
                   <option value="720p">720p / 480p</option>
                   <option value="240p">240p</option>
                 </select>
-
-                <a
-                  href={model.chatUrl || `https://stripcash.com/live/${model.username}?aff=aff_velvet_101`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700 transition text-[11px] font-bold flex items-center gap-1"
-                  title="Abrir canal directo en Stripchat"
-                >
-                  <ExternalLink className="w-3 h-3 text-rose-400" />
-                  <span className="hidden sm:inline">Stripchat</span>
-                </a>
 
                 {/* Private Show Button */}
                 {!isPrivateMode ? (
