@@ -267,4 +267,11 @@ async function startServer() {
 
 startServer();
 
-export default app;
+export default {
+  async fetch(request: Request, env: Record<string, unknown>, ctx: any): Promise<Response> {
+    if (typeof (app as any).fetch === 'function') {
+      return (app as any).fetch(request, env, ctx);
+    }
+    return new Response('Not found', { status: 404 });
+  }
+};

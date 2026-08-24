@@ -1,6 +1,6 @@
 name = "red-ex69"
-main = "worker.js"
-compatibility_date = "2024-09-25"
+main = "dist/server.js"
+compatibility_date = "2026-08-24"
 compatibility_flags = ["nodejs_compat"]
 
 assets = { directory = "./dist", binding = "ASSETS" }
