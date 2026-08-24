@@ -2,6 +2,10 @@ name = "red-ex69"
 main = "dist/server.js"
 compatibility_date = "2026-08-24"
 compatibility_flags = ["nodejs_compat"]
+no_bundle = true
 
 assets = { directory = "./dist", binding = "ASSETS" }
+
+[build]
+find_additional_modules = false
 
