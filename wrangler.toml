@@ -1,8 +1,8 @@
 name = "red-ex69"
-main = "dist/server.js"
+pages_build_output_dir = "./dist"
 compatibility_date = "2026-08-24"
 compatibility_flags = ["nodejs_compat"]
 
-assets = { directory = "./dist", binding = "ASSETS" }
+[build]
+command = "npm run build"
 
-find_additional_modules = false
