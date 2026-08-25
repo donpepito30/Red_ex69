@@ -28,7 +28,8 @@ async function fetchWithBackoff(url: string, retries = 2, baseDelay = 800): Prom
 }
 
 export async function fetchModels(paramsString: string = '') {
-  const url = paramsString ? `/api/models?${paramsString}` : '/api/models';
+  const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+  const url = paramsString ? `${apiBase}/api/models?${paramsString}` : `${apiBase}/api/models`;
   
   try {
     const response = await fetchWithBackoff(url);

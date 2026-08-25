@@ -300,7 +300,8 @@ export const ModelRoomModal: React.FC<ModelRoomModalProps> = ({
 
     // Trigger AI response from Model using Gemini API
     try {
-      const res = await fetch('/api/gemini/chat', {
+      const apiBase = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+      const res = await fetch(`${apiBase}/api/gemini/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
