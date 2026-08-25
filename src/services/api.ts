@@ -8,7 +8,7 @@ async function fetchWithBackoff(url: string, retries = 2, baseDelay = 800): Prom
     try {
       const response = await fetch(url, {
         headers: { 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(7000)
+        signal: AbortSignal.timeout(15000)
       });
       if (response.ok) return response;
       if (response.status === 429 || response.status >= 500) {

@@ -22,13 +22,12 @@ export async function onRequestGet(context) {
     let lastError = null;
 
     // INTENTO 1
-    rawFetchedModels = await fetchUpstream(upstreamUrl, 1, affiliateId);
+    rawFetchedModels = await fetchUpstream(upstreamUrl, 1, affiliateId, 4000);
     if (rawFetchedModels.length > 0) {
       apiSource = 'cloudflare_upstream_api';
     } else {
-      // INTENTO 2 (con backoff)
-      await new Promise(r => setTimeout(r, 1000));
-      rawFetchedModels = await fetchUpstream(upstreamUrl, 2, affiliateId);
+      // INTENTO 2 (reintento rápido)
+      rawFetchedModels = await fetchUpstream(upstreamUrl, 2, affiliateId, 3000);
       if (rawFetchedModels.length > 0) {
         apiSource = 'cloudflare_upstream_api_retry2';
       }
@@ -67,12 +66,12 @@ export async function onRequestGet(context) {
   }
 }
 
-async function fetchUpstream(url, attemptNumber, affiliateId) {
+async function fetchUpstream(url, attemptNumber, affiliateId, timeoutMs = 4000) {
   try {
-    console.log(`[Attempt ${attemptNumber}] Fetching from: ${url.toString()}`);
+    console.log(`[Attempt ${attemptNumber}] Fetching from: ${url.toString()} with timeout ${timeoutMs}ms`);
     
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     const response = await fetch(url.toString(), {
       method: 'GET',
