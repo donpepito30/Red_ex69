@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Hls from 'hls.js';
 import { Model, ChatMessage, TipOption } from '@/lib/types';
-import { INITIAL_CHAT_MESSAGES } from '@/lib/mockModelsData';
 import { CompactModelCard } from './CompactModelCard';
 import { sanitizeInput } from '@/lib/utils';
 import {
@@ -55,7 +54,9 @@ export const ModelRoomModal: React.FC<ModelRoomModalProps> = ({
   onSelectModel,
 }) => {
   const [activeTab, setActiveTab] = useState<'chat' | 'tips' | 'bio' | 'gallery'>('chat');
-  const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES);
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { id: 'welcome', sender: 'Sistema', message: `¡Bienvenido al show en vivo de ${model.displayName}!`, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), badge: 'MOD' }
+  ]);
   const [inputText, setInputText] = useState('');
   const [streamSource, setStreamSource] = useState<'video' | 'iframe'>('video');
   const [videoError, setVideoError] = useState(false);

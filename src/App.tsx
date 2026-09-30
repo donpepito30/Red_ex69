@@ -10,6 +10,7 @@ import { CompactModelCard } from '@/components/CompactModelCard';
 import { ModelRoomModal } from '@/components/ModelRoomModal';
 import { FilterDrawer } from '@/components/FilterDrawer';
 import { TokenPurchaseModal } from '@/components/TokenPurchaseModal';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
 import {
   Flame,
   Radio,
@@ -41,6 +42,33 @@ export default function HomePage() {
 
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [isBuyTokensOpen, setIsBuyTokensOpen] = useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
+
+  // Mobile Bottom Nav handlers
+  const handleExploreClick = useCallback(() => {
+    setShowFavoritesOnly(false);
+    setFilters({
+      gender: 'all',
+      tags: [],
+      search: '',
+      minAge: 18,
+      maxAge: 60,
+      status: 'online',
+      sortBy: 'viewers',
+      isLovenseOnly: false,
+      isHdOnly: false,
+      language: 'all',
+      ethnicity: 'all',
+      hairColor: 'all',
+      bodyType: 'all',
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const handleToggleFavoritesOnly = useCallback(() => {
+    setShowFavoritesOnly((prev) => !prev);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   // Filter State
   const [filters, setFilters] = useState<FilterState>({
@@ -222,6 +250,11 @@ export default function HomePage() {
   const filteredModels = useMemo(() => {
     return models
       .filter((m) => {
+        // Mobile bottom nav favorites-only filtering
+        if (showFavoritesOnly && !favorites.includes(m.id)) {
+          return false;
+        }
+
         // Search Query (Búsqueda de texto manual por el usuario)
         if (filters.search) {
           const q = filters.search.toLowerCase();
@@ -315,7 +348,7 @@ export default function HomePage() {
   }, [models]);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-rose-600 selection:text-white">
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-rose-600 selection:text-white pb-16 md:pb-0">
       
 
 
@@ -377,6 +410,22 @@ export default function HomePage() {
       {/* Main Grid Content */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
         
+        {/* Mobile bottom nav active favorites indicator */}
+        {showFavoritesOnly && (
+          <div className="mb-6 p-4 rounded-2xl bg-rose-950/20 border border-rose-900/60 flex items-center justify-between animate-in fade-in duration-200">
+            <div className="flex items-center gap-2 text-rose-400 text-xs font-extrabold uppercase tracking-wide">
+              <Heart className="w-4 h-4 fill-rose-500 text-rose-500 animate-pulse" />
+              <span>Mostrando únicamente tus modelos favoritas guardadas</span>
+            </div>
+            <button
+              onClick={() => setShowFavoritesOnly(false)}
+              className="text-xs text-zinc-400 hover:text-white font-bold underline transition"
+            >
+              Ver todas las cámaras
+            </button>
+          </div>
+        )}
+
         {/* Results Counter & Active Filter Tags */}
         <div className="flex items-center justify-between mb-6 pb-2 border-b border-zinc-900">
           <div className="flex items-center gap-2 text-xs font-bold text-zinc-400">
@@ -408,37 +457,58 @@ export default function HomePage() {
             <p className="text-xs text-zinc-400 font-bold">Conectando con la API de Stripcash en tiempo real...</p>
           </div>
         ) : filteredModels.length === 0 ? (
-          /* Empty State if no filters match */
-          <div className="py-20 text-center space-y-4 max-w-md mx-auto">
-            <div className="w-16 h-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto text-zinc-500">
-              <SearchX className="w-8 h-8" />
+          showFavoritesOnly ? (
+            /* Custom empty state for favorites-only mode */
+            <div className="py-20 text-center space-y-4 max-w-md mx-auto animate-in fade-in duration-300">
+              <div className="w-16 h-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto text-rose-500">
+                <Heart className="w-8 h-8" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-extrabold text-base text-white">Tu lista de Favoritas está vacía</h3>
+                <p className="text-xs text-zinc-400">
+                  Haz clic en el icono del corazón en la esquina de la transmisión de cualquier modelo para guardarla aquí.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowFavoritesOnly(false)}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition"
+              >
+                Explorar todas las transmisiones en vivo
+              </button>
             </div>
-            <div className="space-y-1">
-              <h3 className="font-extrabold text-base text-white">No se encontraron modelos coincidente</h3>
-              <p className="text-xs text-zinc-400">
-                Prueba cambiando los criterios de búsqueda o limpiando las etiquetas seleccionadas.
-              </p>
+          ) : (
+            /* Empty State if no filters match */
+            <div className="py-20 text-center space-y-4 max-w-md mx-auto">
+              <div className="w-16 h-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto text-zinc-500">
+                <SearchX className="w-8 h-8" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-extrabold text-base text-white">No se encontraron modelos coincidente</h3>
+                <p className="text-xs text-zinc-400">
+                  Prueba cambiando los criterios de búsqueda o limpiando las etiquetas seleccionadas.
+                </p>
+              </div>
+              <button
+                onClick={() =>
+                  setFilters({
+                    gender: 'all',
+                    tags: [],
+                    search: '',
+                    minAge: 18,
+                    maxAge: 60,
+                    status: 'online',
+                    sortBy: 'viewers',
+                    isLovenseOnly: false,
+                    isHdOnly: false,
+                    language: 'all',
+                  })
+                }
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs"
+              >
+                Restablecer Todos los Filtros
+              </button>
             </div>
-            <button
-              onClick={() =>
-                setFilters({
-                  gender: 'all',
-                  tags: [],
-                  search: '',
-                  minAge: 18,
-                  maxAge: 60,
-                  status: 'online',
-                  sortBy: 'viewers',
-                  isLovenseOnly: false,
-                  isHdOnly: false,
-                  language: 'all',
-                })
-              }
-              className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs"
-            >
-              Restablecer Todos los Filtros
-            </button>
-          </div>
+          )
         ) : (
           <div className="space-y-10">
             {/* 2. COMPACT BALANCED GRID WITH RANDOM ROTATION */}
@@ -572,6 +642,16 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Persistent Mobile Bottom Navigation Bar */}
+      <MobileBottomNav
+        onExploreClick={handleExploreClick}
+        onFilterClick={handleToggleFilterDrawer}
+        onFavoritesClick={handleToggleFavoritesOnly}
+        onTokensClick={handleOpenBuyTokens}
+        favoriteCount={favorites.length}
+        showFavoritesOnly={showFavoritesOnly}
+      />
 
     </div>
   );
