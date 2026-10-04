@@ -2,8 +2,24 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import { Readable } from 'stream';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
+
+// SEGURIDAD & COMPATIBILIDAD: Parchear unpipe en Readable Streams para prevenir crashes en Cloudflare workerd
+try {
+  const originalUnpipe = Readable.prototype.unpipe;
+  Readable.prototype.unpipe = function (dest) {
+    if (!this._readableState) {
+      this._readableState = { pipes: [] } as any;
+    } else if (!this._readableState.pipes) {
+      this._readableState.pipes = [];
+    }
+    return originalUnpipe.call(this, dest);
+  };
+} catch (e) {
+  console.warn('No se pudo aplicar el parche preventivo de streams:', e);
+}
 
 dotenv.config();
 
@@ -231,7 +247,7 @@ app.post('/api/gemini/chat', async (req, res) => {
 });
 
 // Manejador 404 para rutas de la API que no existen
-app.all('/api/{*path}', (_req, res) => {
+app.all('/api/*', (_req, res) => {
   res.status(404).json({ error: 'Ruta de API no encontrada o no válida.' });
 });
 
@@ -246,7 +262,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('{*path}', (_req, res) => {
+    app.get('*', (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
